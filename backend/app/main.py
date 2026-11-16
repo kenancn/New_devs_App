@@ -15,6 +15,7 @@ import os
 import time
 
 from app.core.redis_client import redis_client
+from .core.database_pool import db_pool
 from .api.v1 import (
     users_lightning,
     cities,
@@ -90,6 +91,8 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info("Starting up...")
 
+    await db_pool.initialize()
+
     # Initialize Supabase connection pool
     try:
         from .core.supabase_connection_pool import supabase_pool
@@ -122,6 +125,8 @@ async def lifespan(app: FastAPI):
     yield
     # Shutdown
     logger.info("Shutting down...")
+
+    await db_pool.close()
 
     # Shutdown async processor
     await async_processor.shutdown()
